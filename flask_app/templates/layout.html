@@ -63,14 +63,22 @@
                         </a>
                     </h1>
                 </div>
-                <div class="flex gap-4 items-center">
-                    <span class="text-sm px-4 py-2 rounded-lg font-medium">👤 {{ farmer.name }}</span>
+                <div class="flex gap-2 md:gap-4 items-center">
+                    <div id="google_translate_element"
+                        class="rounded-lg bg-gradient-to-r from-red-500 to-blue-500 px-1 md:px-2 py-1 shadow-md text-white border border-red-300">
+                    </div>
+                    <span class="text-sm px-2 md:px-4 py-2 rounded-lg font-medium hidden md:inline">👤 {{ farmer.name
+                        }}</span>
                     <a href="{{ url_for('logout') }}"
-                        class="text-sm bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition-colors shadow-md">Logout</a>
+                        class="text-sm bg-red-500 hover:bg-red-600 px-3 md:px-4 py-2 rounded-lg transition-colors shadow-md">Logout</a>
                 </div>
             </div>
         </div>
     </header>
+    {% else %}
+    <div id="google_translate_element"
+        class="absolute top-4 right-4 z-[9999] shadow-lg rounded-lg overflow-hidden bg-gradient-to-r from-red-500 to-blue-500 px-2 py-1 border border-red-400 text-white">
+    </div>
     {% endif %}
 
     <main class="{% if not request.path == '/' %}container mx-auto px-4 py-8{% endif %}">
@@ -88,10 +96,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Floating Translation Widget -->
-    <div id="google_translate_element"
-        class="fixed bottom-4 right-4 z-[9999] shadow-2xl rounded-lg overflow-hidden bg-white px-2 py-1 border border-gray-200">
-    </div>
+    <!-- Floating Translation Widget is moved to the header/top-right -->
 
     <style>
         /* Hide the annoying Google Translate top bar */
@@ -104,7 +109,11 @@
         }
 
         #google_translate_element select {
-            @apply bg-white text-gray-800 text-sm rounded-md border-0 py-1 cursor-pointer font-bold;
+            @apply bg-transparent text-white text-sm rounded-md border-0 py-1 cursor-pointer font-bold outline-none;
+        }
+
+        #google_translate_element select option {
+            @apply bg-blue-600 text-white;
         }
     </style>
 

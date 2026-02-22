@@ -91,9 +91,7 @@ def get_current_weather(district: str, mandal: str) -> Dict:
     if cache_key in weather_cache and is_cache_valid(weather_cache[cache_key]):
         return weather_cache[cache_key]["data"]
     
-    # If no API key, return mock data
-    if not API_KEY or API_KEY == "your_api_key_here":
-        return get_mock_weather_data(district, mandal)
+    # Remove API Key check as we will use Open-Meteo which does not need one
     
     # Get coordinates
     coords = get_coordinates(district, mandal)
@@ -101,33 +99,54 @@ def get_current_weather(district: str, mandal: str) -> Dict:
         return get_mock_weather_data(district, mandal)
     
     try:
-        # Call OpenWeatherMap API
-        url = f"{BASE_URL}/weather"
+        # Call Open-Meteo API for current weather
+        url = "https://api.open-meteo.com/v1/forecast"
         params = {
-            "lat": coords["lat"],
-            "lon": coords["lon"],
-            "appid": API_KEY,
-            "units": "metric"
+            "latitude": coords["lat"],
+            "longitude": coords["lon"],
+            "current": "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,cloud_cover",
+            "timezone": "auto"
         }
         
         response = requests.get(url, params=params, timeout=5)
         response.raise_for_status()
         
         data = response.json()
+        current = data.get("current", {})
         
+        weather_code = current.get("weather_code", 0)
+        desc = "Clear sky"
+        main = "Clear"
+        
+        if weather_code in [1, 2, 3]:
+            desc = "Partly cloudy"
+            main = "Clouds"
+        elif weather_code in [45, 48]:
+            desc = "Fog"
+            main = "Fog"
+        elif 50 <= weather_code <= 69:
+            desc = "Rain"
+            main = "Rain"
+        elif 80 <= weather_code <= 82:
+            desc = "Showers"
+            main = "Rain"
+        elif weather_code >= 95:
+            desc = "Thunderstorm"
+            main = "Thunderstorm"
+            
         # Extract relevant weather information
         weather_data = {
             "location": f"{mandal}, {district}",
-            "temperature": data["main"]["temp"],
-            "feels_like": data["main"]["feels_like"],
-            "humidity": data["main"]["humidity"],
-            "description": data["weather"][0]["description"],
-            "main": data["weather"][0]["main"],
-            "icon": data["weather"][0]["icon"],
-            "wind_speed": data["wind"]["speed"],
-            "clouds": data["clouds"]["all"],
-            "rain_1h": data.get("rain", {}).get("1h", 0),
-            "rain_3h": data.get("rain", {}).get("3h", 0),
+            "temperature": current.get("temperature_2m", 25),
+            "feels_like": current.get("apparent_temperature", 25),
+            "humidity": current.get("relative_humidity_2m", 50),
+            "description": desc,
+            "main": main,
+            "icon": "02d", # Default fallback
+            "wind_speed": current.get("wind_speed_10m", 0),
+            "clouds": current.get("cloud_cover", 0),
+            "rain_1h": current.get("precipitation", 0),
+            "rain_3h": current.get("precipitation", 0) * 3, # Estimation
             "timestamp": datetime.now().isoformat(),
             "is_mock": False
         }
@@ -141,7 +160,7 @@ def get_current_weather(district: str, mandal: str) -> Dict:
         return weather_data
         
     except Exception as e:
-        print(f"Error fetching weather data: {e}")
+        print(f"Error fetching real weather data: {e}")
         return get_mock_weather_data(district, mandal)
 
 def get_weather_forecast(district: str, mandal: str) -> List[Dict]:
@@ -160,19 +179,7 @@ def get_weather_forecast(district: str, mandal: str) -> List[Dict]:
     if cache_key in weather_cache and is_cache_valid(weather_cache[cache_key]):
         return weather_cache[cache_key]["data"]
     
-    # If no API key, return mock forecast
-    if not API_KEY or API_KEY == "your_api_key_here":
-        return [
-            {
-                "date": (datetime.now() + timedelta(days=i)).strftime("%Y-%m-%d"),
-                "temp_max": 32 + i,
-                "temp_min": 22 + i,
-                "description": "Partly cloudy",
-                "rain_probability": 20 if i < 2 else 60,
-                "rain_mm": 0 if i < 2 else 5.0
-            }
-            for i in range(5)
-        ]
+    # Removed API Key check
     
     # Get coordinates
     coords = get_coordinates(district, mandal)
@@ -180,47 +187,37 @@ def get_weather_forecast(district: str, mandal: str) -> List[Dict]:
         return []
     
     try:
-        # Call OpenWeatherMap API
-        url = f"{BASE_URL}/forecast"
+        # Call Open-Meteo API for forecast
+        url = "https://api.open-meteo.com/v1/forecast"
         params = {
-            "lat": coords["lat"],
-            "lon": coords["lon"],
-            "appid": API_KEY,
-            "units": "metric"
+            "latitude": coords["lat"],
+            "longitude": coords["lon"],
+            "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,weather_code",
+            "timezone": "auto"
         }
         
         response = requests.get(url, params=params, timeout=5)
         response.raise_for_status()
         
         data = response.json()
+        daily = data.get("daily", {})
         
-        # Process forecast data (group by day)
-        daily_forecast = {}
-        for item in data["list"]:
-            date = datetime.fromtimestamp(item["dt"]).strftime("%Y-%m-%d")
-            
-            if date not in daily_forecast:
-                daily_forecast[date] = {
-                    "date": date,
-                    "temps": [],
-                    "descriptions": [],
-                    "rain": []
-                }
-            
-            daily_forecast[date]["temps"].append(item["main"]["temp"])
-            daily_forecast[date]["descriptions"].append(item["weather"][0]["description"])
-            daily_forecast[date]["rain"].append(item.get("rain", {}).get("3h", 0))
-        
-        # Aggregate daily data
         forecast_list = []
-        for date, day_data in sorted(daily_forecast.items())[:5]:
+        for i in range(min(5, len(daily.get("time", [])))):
+            w_code = daily["weather_code"][i]
+            desc = "Clear"
+            if w_code in [1, 2, 3]: desc = "Cloudy"
+            elif 50 <= w_code <= 69: desc = "Rain"
+            elif 80 <= w_code <= 82: desc = "Showers"
+            elif w_code >= 95: desc = "Thunderstorm"
+            
             forecast_list.append({
-                "date": date,
-                "temp_max": max(day_data["temps"]),
-                "temp_min": min(day_data["temps"]),
-                "description": max(set(day_data["descriptions"]), key=day_data["descriptions"].count),
-                "rain_probability": 100 if sum(day_data["rain"]) > 0 else 20,
-                "rain_mm": sum(day_data["rain"])
+                "date": daily["time"][i],
+                "temp_max": daily["temperature_2m_max"][i],
+                "temp_min": daily["temperature_2m_min"][i],
+                "description": desc,
+                "rain_probability": daily["precipitation_probability_max"][i],
+                "rain_mm": daily["precipitation_sum"][i]
             })
         
         # Cache the data

@@ -21,6 +21,18 @@
                     class="inline-flex bg-green-500 text-white hover:bg-green-600 font-bold py-3 px-6 rounded-xl shadow-lg transition-transform transform hover:scale-105 items-center gap-2">
                     <span class="text-xl">🛒</span> Buy Fertilizers
                 </a>
+                <a href="{{ url_for('complaints') }}"
+                    class="inline-flex bg-red-500 text-white hover:bg-red-600 font-bold py-3 px-6 rounded-xl shadow-lg transition-transform transform hover:scale-105 items-center gap-2">
+                    <span class="text-xl">📸</span> Complaint Check
+                </a>
+                <a href="{{ url_for('market') }}"
+                    class="inline-flex bg-blue-500 text-white hover:bg-blue-600 font-bold py-3 px-6 rounded-xl shadow-lg transition-transform transform hover:scale-105 items-center gap-2">
+                    <span class="text-xl">📊</span> Market Prices
+                </a>
+                <a href="{{ url_for('crop_advisor') }}"
+                    class="inline-flex bg-purple-500 text-white hover:bg-purple-600 font-bold py-3 px-6 rounded-xl shadow-lg transition-transform transform hover:scale-105 items-center gap-2">
+                    <span class="text-xl">🌱</span> Crop Advisor
+                </a>
             </div>
         </div>
         <div class="absolute -right-10 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>

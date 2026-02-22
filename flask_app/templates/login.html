@@ -27,16 +27,22 @@
         <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
             <div>
                 <label class="block text-gray-700 dark:text-gray-200 font-semibold mb-2">Mobile Number</label>
-                <input type="tel" id="login-mobile" pattern="\d{10}" placeholder="Enter 10-digit mobile number"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                    required>
+                <div class="flex gap-2">
+                    <input type="tel" id="login-mobile" pattern="\d{10}" placeholder="Enter 10-digit mobile number"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                        required>
+                    <button type="button" onclick="sendOtp('login-mobile')"
+                        class="whitespace-nowrap px-4 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg font-semibold transition-colors">
+                        Get OTP
+                    </button>
+                </div>
             </div>
             <div>
                 <label class="block text-gray-700 dark:text-gray-200 font-semibold mb-2">OTP</label>
-                <input type="text" id="login-otp" placeholder="Enter OTP (Dev OTP: 123456)"
+                <input type="text" id="login-otp" placeholder="Enter 6-digit OTP"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                     required>
-                <p class="text-sm text-gray-500 mt-1">Dev OTP: 123456</p>
+                <p class="text-xs text-gray-500 mt-1">Check terminal console for the mock SMS</p>
             </div>
             <button type="submit" id="login-btn"
                 class="w-full px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 transition-all shadow-md mt-4">Login</button>
@@ -52,9 +58,15 @@
             </div>
             <div>
                 <label class="block text-gray-700 dark:text-gray-200 font-semibold mb-2">Mobile Number</label>
-                <input type="tel" id="signup-mobile" pattern="\d{10}" placeholder="Enter 10-digit mobile number"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                    required>
+                <div class="flex gap-2">
+                    <input type="tel" id="signup-mobile" pattern="\d{10}" placeholder="Enter 10-digit mobile number"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                        required>
+                    <button type="button" onclick="sendOtp('signup-mobile')"
+                        class="whitespace-nowrap px-4 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg font-semibold transition-colors">
+                        Get OTP
+                    </button>
+                </div>
             </div>
             <div>
                 <label class="block text-gray-700 dark:text-gray-200 font-semibold mb-2">District</label>
@@ -70,9 +82,10 @@
             </div>
             <div>
                 <label class="block text-gray-700 dark:text-gray-200 font-semibold mb-2">OTP</label>
-                <input type="text" id="signup-otp" placeholder="Enter OTP (Dev OTP: 123456)"
+                <input type="text" id="signup-otp" placeholder="Enter 6-digit OTP"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                     required>
+                <p class="text-xs text-gray-500 mt-1">Check terminal console for the mock SMS</p>
             </div>
             <button type="submit" id="signup-btn"
                 class="w-full px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 transition-all shadow-md mt-4">Create
@@ -112,6 +125,57 @@
         const errDiv = document.getElementById('error-msg');
         errDiv.innerText = msg;
         errDiv.classList.remove('hidden');
+        errDiv.classList.remove('bg-green-50', 'border-green-200', 'text-green-700');
+        errDiv.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
+    }
+
+    function showSuccess(msg) {
+        const errDiv = document.getElementById('error-msg');
+        errDiv.innerText = msg;
+        errDiv.classList.remove('hidden');
+        errDiv.classList.remove('bg-red-50', 'border-red-200', 'text-red-700');
+        errDiv.classList.add('bg-green-50', 'border-green-200', 'text-green-700');
+    }
+
+    async function sendOtp(inputId) {
+        const mobileInput = document.getElementById(inputId);
+        const mobile = mobileInput.value;
+
+        if (!mobile || !/^\d{10}$/.test(mobile)) {
+            showError("Please enter a valid 10-digit mobile number first.");
+            mobileInput.focus();
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("mobile", mobile);
+
+        try {
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "...";
+            btn.disabled = true;
+
+            const res = await fetch("/api/send-otp", {
+                method: "POST",
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showSuccess(data.message);
+            } else {
+                showError(data.message);
+            }
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 1000);
+
+        } catch (err) {
+            showError("Failed to request OTP. Try again.");
+        }
     }
 
     async function handleLogin(e) {

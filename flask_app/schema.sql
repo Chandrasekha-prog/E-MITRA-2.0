@@ -43,3 +43,28 @@ CREATE TABLE IF NOT EXISTS bookings (
     delivery_address TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Create Disease History table
+CREATE TABLE IF NOT EXISTS disease_history (
+    id SERIAL PRIMARY KEY,
+    farmer_id INTEGER REFERENCES farmers(id) ON DELETE CASCADE,
+    image_base64 TEXT,
+    plant_type TEXT,
+    disease_name TEXT,
+    is_healthy BOOLEAN,
+    description TEXT,
+    recommendation TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Create Complaints table
+CREATE TABLE IF NOT EXISTS complaints (
+    id SERIAL PRIMARY KEY,
+    farmer_id INTEGER REFERENCES farmers(id) ON DELETE CASCADE,
+    image_base64 TEXT,
+    text_description TEXT,
+    is_fake BOOLEAN,
+    veracity_score FLOAT,
+    status TEXT DEFAULT 'Pending Validation',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);

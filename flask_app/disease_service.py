@@ -25,20 +25,20 @@ def analyze_plant_disease(image_path: str) -> dict:
     try:
         genai.configure(api_key=GENAI_API_KEY)
         
-        # We can use gemini-1.5-flash or gemini-pro-vision for image tasks
-        # gemini-1.5-flash is currently recommended for general multimodal tasks
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Using a faster, higher-quota model to avoid rate limiting
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         img = Image.open(image_path)
         
         prompt = """
-        You are an expert agricultural plant pathologist. Analyze this image of a plant/leaf.
+        You are an elite, highly experienced agricultural plant pathologist and botanist. 
+        Perform the highest possible accuracy classification on this image of a plant/leaf.
         Provide the following information clearly structured:
-        1. Plant Type: What plant is this?
+        1. Plant Type: What plant is this? (Include precise scientific name)
         2. Health Status: Is it healthy or diseased?
-        3. Disease Name: (If diseased, otherwise say 'None')
-        4. Description: Briefly describe the visual symptoms you see.
-        5. Treatment Recommendation: Provide practical agricultural advice to treat or manage this condition.
+        3. Disease Name: (If diseased, state the specific highest-classification disease name and pathogen, otherwise say 'None')
+        4. Description: Provide a detailed, highly accurate scientific description of the visual symptoms you see.
+        5. Treatment Recommendation: Provide advanced, highly effective practical agricultural advice to treat or manage this condition.
         
         Return the response AS A RAW JSON OBJECT (no markdown blocks or formatting around it) with these exact keys:
         {

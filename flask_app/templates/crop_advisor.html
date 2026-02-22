@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mb-8">
+    <div
+        class="mb-8 flex justify-between items-center bg-purple-600 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10 w-full">
+            <h2 class="text-4xl font-bold mb-2 flex items-center gap-3">
+                <span>🌾</span> Interactive Crop Advisor
+            </h2>
+            <p class="text-purple-100 text-lg opacity-90 max-w-2xl">
+                Smart recommendations for seasons, fertilizers, and water management in {{ farmer.district }}.
+            </p>
+
+            <div
+                class="mt-6 flex flex-wrap items-center gap-4 bg-white/20 p-4 rounded-xl backdrop-blur-md border border-white/30 md:w-max">
+                <span class="text-sm font-semibold uppercase tracking-wider text-purple-100">Current Season:</span>
+                <span
+                    class="bg-white text-purple-700 px-4 py-2 rounded-lg font-bold shadow-sm whitespace-nowrap text-lg">
+                    {{ season }}
+                </span>
+            </div>
+        </div>
+        <div
+            class="absolute right-0 bottom-0 opacity-20 w-64 h-64 -mb-16 -mr-16 bg-white rounded-full blur-3xl pointer-events-none">
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Crops for the Season -->
+        <div
+            class="bg-white rounded-2xl p-6 shadow-md border border-gray-100 flex flex-col h-full transform transition hover:-translate-y-1 hover:shadow-lg">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl bg-green-100 text-green-600 p-3 rounded-xl block">🌱</span>
+                <h3 class="text-2xl font-bold text-gray-800">Best Crops to Grow</h3>
+            </div>
+            <p class="text-gray-500 mb-6 text-sm">Based on the current weather and soil profile of {{ farmer.mandal }},
+                these are the highly recommended crops to plant this {{ season }}:</p>
+
+            <div class="grid grid-cols-2 gap-4">
+                {% for crop in best_crops %}
+                <div
+                    class="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center group hover:bg-green-50 hover:border-green-200 transition-colors cursor-pointer">
+                    <span class="text-lg font-bold text-gray-800 group-hover:text-green-700 block">{{ crop }}</span>
+                    <span class="text-xs text-green-600 font-semibold mt-1 inline-block">High Yield expected</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-auto pt-6 border-t border-gray-100">
+                <a href="{{ url_for('new_recommendation') }}"
+                    class="text-primary-600 font-bold hover:text-primary-800 flex items-center gap-1 group">
+                    <span>Get Detailed Fertilizer Plan</span>
+                    <span class="transition-transform group-hover:translate-x-1">→</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Water Usage Advice -->
+        <div
+            class="bg-white rounded-2xl p-6 shadow-md border border-gray-100 flex flex-col h-full transform transition hover:-translate-y-1 hover:shadow-lg">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl bg-blue-100 text-blue-600 p-3 rounded-xl block">💧</span>
+                <h3 class="text-2xl font-bold text-gray-800">Water Management</h3>
+            </div>
+            <p class="text-gray-500 mb-6 text-sm">Efficient irrigation practices prevent waterlogging and save costs.
+            </p>
+
+            <div class="space-y-4 flex-grow">
+                {% for item in water_advice %}
+                <div class="border border-blue-100 bg-blue-50/50 rounded-xl p-4 flex gap-4 items-start">
+                    <div class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded w-24 text-center flex-shrink-0">
+                        {{ item.crop }}
+                    </div>
+                    <p class="text-sm text-gray-700 leading-relaxed font-medium">
+                        {{ item.advice }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <div class="bg-blue-600 text-white rounded-xl p-4 flex items-center gap-3">
+                    <span class="text-2xl">💡</span>
+                    <div>
+                        <h4 class="font-bold text-sm">Expert Tip</h4>
+                        <p class="text-xs text-blue-100">Using Drip Irrigation can save up to 40% water and yield 20%
+                            more crops.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

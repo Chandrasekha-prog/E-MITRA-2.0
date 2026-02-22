@@ -10,9 +10,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 # Initialize Supabase client
 def get_supabase_client() -> Client:
     if not SUPABASE_URL or not SUPABASE_KEY:
-        print("Warning: SUPABASE_URL or SUPABASE_KEY not found. Using dummy client or will fail.")
-        # Return a dummy client or handle gracefully to not crash the app
-        return None
+        raise ValueError("Critical Error: SUPABASE_URL or SUPABASE_KEY is missing from environment variables. Please check your .env file.")
     return create_client(SUPABASE_URL, SUPABASE_KEY)
 
 supabase = get_supabase_client()
